@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+
+# Artefactos de compilación
+build/
+dist/
+target/
+
+# Variables de entorno y llaves
+.env
+.env.local
+*.pem
+*.key
+
+# Archivos de sistema y VS Code
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.log
+.DS_Store
+Thumbs.db
