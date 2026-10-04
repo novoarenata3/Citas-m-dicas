@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ejercicio 3 - Sistema de Gestión</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 p-6">
+  <div class="max-w-6xl mx-auto space-y-6">
+    
+    <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">Ejercicio 3: Dashboard de Operaciones</h1>
+        <p class="text-slate-500 text-sm">Monitoreo en tiempo real, eventos asíncronos y auditoría</p>
+      </div>
+      <span class="bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full">Módulo Activo v1.0</span>
+    </header>
+
+    <!-- Indicadores del Sistema -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <p class="text-xs text-slate-500 font-medium">Eventos Procesados</p>
+        <p class="text-2xl font-bold text-indigo-600 mt-1" id="m-procesados">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <p class="text-xs text-slate-500 font-medium">Cola Asíncrona (Workers)</p>
+        <p class="text-2xl font-bold text-amber-600 mt-1" id="m-cola">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <p class="text-xs text-slate-500 font-medium">Tasa de Éxito</p>
+        <p class="text-2xl font-bold text-emerald-600 mt-1">99.8%</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <p class="text-xs text-slate-500 font-medium">Latencia Promedio</p>
+        <p class="text-2xl font-bold text-blue-600 mt-1">45 ms</p>
+      </div>
+    </div>
+
+    <!-- Panel de Operación -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Formulario de Entrada -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+        <h2 class="text-lg font-bold text-slate-900">Registrar Evento / Operación</h2>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Identificador de Entidad</label>
+          <input type="text" id="entidad-id" value="ENT-8839" class="w-full border border-slate-300 rounded p-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de Evento</label>
+          <select id="tipo-evento" class="w-full border border-slate-300 rounded p-2 text-sm">
+            <option value="ACTUALIZACION_ESTADO">Actualización de Estado</option>
+            <option value="NOTIFICACION_USUARIO">Notificación a Usuario</option>
+            <option value="SINCRONIZACION_BATCH">Sincronización Batch</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Clave de Idempotencia</label>
+          <input type="text" id="idempotency-key" class="w-full border border-slate-300 rounded p-2 text-sm bg-slate-50 font-mono" readonly>
+        </div>
+        
+        <div class="pt-2 space-y-2">
+          <button onclick="ejecutarOperacion()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded text-sm transition">Procesar Evento</button>
+          <button onclick="generarNuevaClave()" class="w-full border border-slate-300 hover:bg-slate-50 text-slate-700 py-1.5 rounded text-xs transition">Generar Nueva Clave</button>
+        </div>
+      </div>
+
+      <!-- Tabla de Eventos y Auditoría -->
+      <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+        <h2 class="text-lg font-bold text-slate-900">Bitácora de Eventos y Auditoría</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-xs">
+              <tr>
+                <th class="p-2">Hora</th>
+                <th class="p-2">Clave ID</th>
+                <th class="p-2">Tipo</th>
+                <th class="p-2">Estado</th>
+                <th class="p-2">Worker Asíncrono</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-eventos" class="divide-y divide-slate-100 font-mono text-xs">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
