@@ -1,57 +1,55 @@
-let contadorProcesados = 0;
-let contadorCola = 0;
+const reservasExistentes = new Set();
+let duplicadasBloqueadas = 0;
+let recordatoriosEnviados = 0;
 
-function generarUUID() {
-  return 'e3-' + Math.random().toString(36).substring(2, 9) + '-' + Date.now();
-}
+function reservarCita() {
+  const paciente = document.getElementById("paciente-nombre").value;
+  const medico = document.getElementById("medico-select").value;
+  const hora = document.getElementById("horario-select").value;
 
-function generarNuevaClave() {
-  document.getElementById("idempotency-key").value = generarUUID();
-}
+  const claveReserva = `${medico}-${hora}`;
 
-function ejecutarOperacion() {
-  const key = document.getElementById("idempotency-key").value;
-  const entidad = document.getElementById("entidad-id").value;
-  const tipo = document.getElementById("tipo-evento").value;
-  const timestamp = new Date().toLocaleTimeString();
-
-  if (!key) {
-    alert("Genera una clave válida.");
+  // Control de concurrencia / Solapamiento de horarios
+  if (reservasExistentes.has(claveReserva)) {
+    duplicadasBloqueadas++;
+    document.getElementById("m-duplicadas").innerText = duplicadasBloqueadas;
+    alert(`¡Conflicto de Horario! El ${medico} ya tiene una cita reservada a las ${hora}.`);
     return;
   }
 
-  contadorProcesados++;
-  contadorCola++;
-  document.getElementById("m-procesados").innerText = contadorProcesados;
-  document.getElementById("m-cola").innerText = contadorCola;
+  reservasExistentes.add(claveReserva);
+  recordatoriosEnviados++;
+  document.getElementById("m-recordatorios").innerText = recordatoriosEnviados;
 
-  agregarFila(timestamp, key, tipo, "COMPLETADO", "Enviado a RabbitMQ", "bg-emerald-100 text-emerald-800");
-
-  // Simular procesamiento del worker en segundo plano
-  setTimeout(() => {
-    if (contadorCola > 0) {
-      contadorCola--;
-      document.getElementById("m-cola").innerText = contadorCola;
-    }
-  }, 3000);
-
-  generarNuevaClave();
+  agregarFilaTabla(hora, paciente, medico, "RESERVADA", "SMS / WhatsApp Encolado (RabbitMQ)", "bg-emerald-100 text-emerald-800");
 }
 
-function agregarFila(time, key, tipo, estado, detalle, claseBadge) {
-  const tbody = document.getElementById("tabla-eventos");
+function simularColision() {
+  const medico = document.getElementById("medico-select").value;
+  const hora = document.getElementById("horario-select").value;
+  const claveReserva = `${medico}-${hora}`;
+
+  if (!reservasExistentes.has(claveReserva)) {
+    reservarCita(); // Primero crea la primera cita para forzar la colisión en la siguiente
+  }
+
+  // Intenta reservar exactamente la misma hora
+  duplicadasBloqueadas++;
+  document.getElementById("m-duplicadas").innerText = duplicadasBloqueadas;
+  agregarFilaTabla(hora, "Segundo Paciente (Intento)", medico, "DENEGADA_DUPLICADA", "Bloqueo por Restricción GiST en DB", "bg-rose-100 text-rose-800");
+  alert(`[Demostración de Control de Concurrencia]: Se evitó la reserva duplicada para las ${hora}.`);
+}
+
+function agregarFilaTabla(hora, paciente, medico, estado, detalleNotificacion, claseBadge) {
+  const tbody = document.getElementById("tabla-citas");
   const tr = document.createElement("tr");
   tr.className = "hover:bg-slate-50";
   tr.innerHTML = `
-    <td class="p-2 text-slate-500">${time}</td>
-    <td class="p-2 font-bold text-slate-700">${key.substring(0, 14)}...</td>
-    <td class="p-2 text-slate-600">${tipo}</td>
+    <td class="p-2 text-slate-700 font-bold">${hora}</td>
+    <td class="p-2 text-slate-800">${paciente}</td>
+    <td class="p-2 text-slate-600">${medico}</td>
     <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-semibold ${claseBadge}">${estado}</span></td>
-    <td class="p-2 text-slate-500">${detalle}</td>
+    <td class="p-2 text-slate-500">${detalleNotificacion}</td>
   `;
   tbody.insertBefore(tr, tbody.firstChild);
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  generarNuevaClave();
-});
